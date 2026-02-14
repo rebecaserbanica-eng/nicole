@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pentru Nicole ❤️</title>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<style>
+:root { --main: #ff4d6d; --soft: #fff0f3; --text: #590d22; }
+body { font-family: 'Poppins', sans-serif; background: var(--soft); margin:0; display:flex; align-items:center; justify-content:center; min-height:100vh; color: var(--text);}
+.box { max-width: 400px; width: 85%; background: white; padding: 30px; border-radius: 25px; box-shadow:0 10px 30px rgba(255,77,109,0.2); text-align:center; border: 2px solid #ffb3c1; position: relative;}
+.hidden { display: none; }
+h1 { color: var(--main); font-size:1.5rem; margin-bottom:10px;}
+.pickup-line { font-style: italic; color: #888; margin-bottom:20px; font-size:0.9rem; line-height:1.4;}
+.btn { padding:12px 24px; border:none; border-radius:50px; cursor:pointer; transition:0.3s; font-weight:bold; background: var(--main); color:white; width:100%; margin-top:10px; }
+.grid { display:grid; grid-template-columns: repeat(3,1fr); gap:8px; margin:15px 0; }
+.tile { background: var(--main); height:60px; border-radius:8px; display:flex; align-items:center; justify-content:center; color:white; font-size:1.5rem; cursor:pointer; }
+.chip { display:inline-block; padding:8px 12px; background:#ffe5ec; margin:4px; border-radius:15px; cursor:pointer; border:1px solid var(--main); font-size:0.9rem; }
+#scratch { background: #eee; cursor: crosshair; border-radius:15px; touch-action:none; border:1px solid #ddd; }
+.heart-click { font-size:65px; cursor:pointer; user-select:none; transition:0.1s; display:inline-block; margin:15px 0; line-height:1;}
+#timer { display:flex; justify-content:space-around; margin-top:20px; background: var(--soft); padding:15px; border-radius:15px; border:2px dashed var(--main);}
+.t-unit { display:flex; flex-direction:column; font-size:1.1rem; font-weight:bold; color: var(--main);}
+.t-label { font-size:0.6rem; text-transform:uppercase; color:#a33b51; }
+</style>
+</head>
+<body>
+
+<div class="box">
+  <!-- 1. INTRO -->
+  <div id="s1">
+    <h1>Hey, Nicole! 🥰</h1>
+    <p class="pickup-line">"Ești cumva un dicționar? Pentru că adaugi înțeles vieții mele."</p>
+    <button class="btn" onclick="go(1,2)">Începe Aventura! ✨</button>
+  </div>
+
+  <!-- 2. NUME -->
+  <div id="s2" class="hidden">
+    <h1>1. Cine ești? 🔍</h1>
+    <input type="text" id="nameIn" placeholder="Numele tău...">
+    <button class="btn" onclick="check1()">Confirmă</button>
+  </div>
+
+  <!-- 3. MEMORY -->
+  <div id="s3" class="hidden">
+    <h1>2. Memorie 🧠</h1>
+    <div class="grid" id="g"></div>
+  </div>
+
+  <!-- 4. PUZZLE -->
+  <div id="s4" class="hidden">
+    <h1>3. Puzzle 🧩</h1>
+    <div id="chips"></div>
+    <p id="puzOut" style="min-height:25px; font-weight:bold; margin-top:10px; color:var(--main)"></p>
+    <button class="btn" onclick="checkPuzzle()">Verifică</button>
+  </div>
+
+  <!-- 5. SCRATCH -->
+  <div id="s5" class="hidden">
+    <h1>4. Răzuiește 🎁</h1>
+    <p class="pickup-line">Șterge stratul gri cu degetul!</p>
+    <canvas id="scratch" width="280" height="140" style="display:block; margin:0 auto; border-radius:15px; border:1px solid #ddd;"></canvas>
+    <button class="btn" onclick="go(5,6)">Spre marea finală! 🌹</button>
+  </div>
+
+  <!-- 6. LOVE METER (ULTIMUL PAS) -->
+  <div id="s6" class="hidden">
+    <h1>5. Love Meter ❤️</h1>
+    <div class="heart-click" id="hb" onclick="clickH()">❤️</div>
+    <p id="hc" style="font-weight:bold;">Încarcă inima: 0 / 10</p>
+
+    <div id="finalPart" class="hidden">
+      <h2 style="color: var(--main); margin-top:20px;">Te iubesc, Nicole! 🎉</h2>
+      <div id="timer">
+        <div class="t-unit"><span id="days">00</span><span class="t-label">Zile</span></div>
+        <div class="t-unit"><span id="hours">00</span><span class="t-label">Ore</span></div>
+        <div class="t-unit"><span id="mins">00</span><span class="t-label">Min</span></div>
+        <div class="t-unit"><span id="secs">00</span><span class="t-label">Sec</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const go = (o,n) => { document.getElementById('s'+o).classList.add('hidden'); document.getElementById('s'+n).classList.remove('hidden'); }
+
+function check1(){
+  if(document.getElementById('nameIn').value.toLowerCase().includes("nicole")) { go(2,3); initMemory(); }
+  else alert("Introdu numele corect! ✨");
+}
+
+// MEMORY
+function initMemory(){
+  const icons = ['🌹','🌹','✨','✨','💖','💖']; icons.sort(()=>Math.random()-0.5);
+  const grid = document.getElementById('g'); grid.innerHTML='';
+  let flipped=[]; let matches=0;
+  icons.forEach(icon=>{
+    const tile = document.createElement('div'); tile.className='tile';
+    tile.onclick=function(){
+      if(flipped.length<2 && !tile.innerText){
+        tile.innerText=icon; flipped.push(tile);
+        if(flipped.length===2){
+          if(flipped[0].innerText===flipped[1].innerText){matches++; flipped=[]; if(matches===3) setTimeout(()=>{ go(3,4); initPuzzle(); },600); }
+          else setTimeout(()=>{ flipped[0].innerText=''; flipped[1].innerText=''; flipped=[]; },500);
+        }
+      }
+    };
+    grid.appendChild(tile);
+  });
+}
+
+// PUZZLE
+const solArr = ["Nicole","te","iubesc","mult"]; let curArr=[];
+function initPuzzle(){
+  curArr=[]; document.getElementById('chips').innerHTML='';
+  const shuf=[...solArr].sort(()=>Math.random()-0.5);
+  shuf.forEach(w=>{
+    const span = document.createElement('span'); span.className='chip'; span.innerText=w;
+    span.onclick=()=>{ curArr.push(w); document.getElementById('puzOut').innerText = curArr.join(" "); span.style.display='none'; }
+    document.getElementById('chips').appendChild(span);
+  });
+}
+function checkPuzzle(){
+  if(curArr.join(" ")===solArr.join(" ")) { go(4,5); initScratch(); }
+  else alert("Mai încearcă ordinea!");
+}
+
+// SCRATCH CARD
+function initScratch(){
+  const cv = document.getElementById('scratch');
+  const cx = cv.getContext('2d');
+
+  // Textul dezvăluit
+  const message = 'EȘTI MINUNATĂ! ❤️';
+  const textCanvas = document.createElement('canvas');
+  textCanvas.width = cv.width; textCanvas.height = cv.height;
+  const ctxText = textCanvas.getContext('2d');
+  ctxText.fillStyle='black'; ctxText.font='20px Arial';
+  ctxText.textAlign='center'; ctxText.textBaseline='middle';
+  ctxText.fillText(message, cv.width/2, cv.height/2);
+  const imgData = ctxText.getImageData(0,0,cv.width,cv.height);
+
+  // Strat acoperitor
+  cx.fillStyle = '#bbb';
+  cx.fillRect(0,0,cv.width,cv.height);
+
+  cx.globalCompositeOperation='destination-out';
+
+  const paint = e=>{
+    e.preventDefault();
+    const r = cv.getBoundingClientRect();
+    const x=(e.pageX||(e.touches?e.touches[0].pageX:0))-r.left;
+    const y=(e.pageY||(e.touches?e.touches[0].pageY:0))-r.top;
+
+    cx.beginPath(); cx.arc(x,y,25,0,Math.PI*2); cx.fill();
+    // Dezvăluim textul
+    cx.putImageData(imgData,0,0);
+  };
+
+  cv.addEventListener('mousemove', paint);
+  cv.addEventListener('touchmove', paint,{passive:false});
+}
+
+// LOVE METER
+let c=0;
+function clickH(){
+  if(c<10){ c++; document.getElementById('hb').style.transform = `scale(${1+c*0.15})`;
+    document.getElementById('hc').innerText = `Încarcă inima: ${c} / 10`;
+    if(c===10){ confetti({ particleCount:200, spread:90 }); document.getElementById('finalPart').classList.remove('hidden'); startTimer(); }
+  }
+}
+
+// TIMER până pe 18 aprilie 2026
+function startTimer(){
+  const target = new Date("April 18, 2026 00:00:00").getTime();
+  setInterval(()=>{
+    const d=target-new Date().getTime();
+    document.getElementById('days').innerText=Math.max(0,Math.floor(d/86400000));
+    document.getElementById('hours').innerText=Math.max(0,Math.floor((d%86400000)/3600000));
+    document.getElementById('mins').innerText=Math.max(0,Math.floor((d%3600000)/60000));
+    document.getElementById('secs').innerText=Math.max(0,Math.floor((d%60000)/1000));
+  },1000);
+}
+</script>
+
+</body>
+</html>
